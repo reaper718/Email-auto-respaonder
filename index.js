@@ -1,6 +1,5 @@
 const fs = require('fs');
 const { google } = require('googleapis');
-const nodemailer = require('nodemailer');
 const opn = require('opn');
 const readline = require('readline');
 
@@ -9,7 +8,7 @@ const credentials = require('./credentials.json');
 const TOKEN_PATH = 'token.json';
 
 //label creation
-const LABEL_NAME = 'trying1';
+const LABEL_NAME = 'vacationAutoReply';
 
 // Create an OAuth2 client with credentials
 const oAuth2Client = new google.auth.OAuth2(
@@ -18,6 +17,7 @@ const oAuth2Client = new google.auth.OAuth2(
   credentials.installed.redirect_uris[0]
 );
 
+//generatin authrization url
 function getAuthorizationUrl() {
     return oAuth2Client.generateAuthUrl({
       access_type: 'offline',
@@ -46,7 +46,7 @@ function getAuthorizationUrl() {
       oAuth2Client.setCredentials(JSON.parse(token));
       // Ensure label exists during initial authorization
     await createLabelIfNotExists(gmail);
-    
+
       return oAuth2Client;
     } catch (err) {
       if (err.code === 'ENOENT') {
@@ -84,7 +84,7 @@ async function fetchEmails(auth) {
   const response = await gmail.users.messages.list({
     userId: 'rudrasabnani@gmail.com',
     labelIds: ['INBOX'],
-    q: 'is:unread', // You can modify this query as needed
+    q: 'is:unread', 
   });
   return response.data.messages;
 }
@@ -126,14 +126,14 @@ async function sendReply(auth, message) {
     },
   });
 
-  // // Apply the label to the email
-  // await gmail.users.messages.modify({
-  //   userId: 'rudrasabnani@gmail.com',
-  //   id: message.id,
-  //   requestBody: {
-  //     addLabelIds: [LABEL_NAME],
-  //   },
-  // });
+  // Apply the label to the email
+  await gmail.users.messages.modify({
+    userId: 'rudrasabnani@gmail.com',
+    id: message.id,
+    requestBody: {
+      addLabelIds: [LABEL_NAME],
+    },
+  });
 
   console.log(`Replied to email: ${senderEmail}\r\n`);
 }
